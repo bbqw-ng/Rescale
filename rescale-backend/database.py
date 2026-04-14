@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
-#actual connection to database
+# the connection pool to the db (holds multiple connections therefore a pool)
 engine = create_engine(DATABASE_URL)
 #this is basically a factory that opens sessions for us when we want to access db. in endpoint scenario, we open, do work, then close.
 SessionLocal = sessionmaker(autocommit = False, autoflush = False, bind = engine)

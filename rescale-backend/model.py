@@ -2,6 +2,11 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 
+
+#Are these models / tables normalized?
+
+
+#this is the base class that all models inherit from.
 class Base(DeclarativeBase):
   pass
 

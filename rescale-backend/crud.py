@@ -1,7 +1,7 @@
 #CRUD stands for create, read, update, delete. this is sorta like the (restful) http layer, but is actually the backend database where the http layer is the frontend.
 #sequence goes from http req -> frontend rest api -> backend crud function -> database
 from model import User, Recipe, Ingredient
-from sqlalchemy.orm import Session
+from sqlalchemy import Session
 
 #User
 #return: user obj with the filled attributes
@@ -27,16 +27,28 @@ def create_recipe(db, name, base_servings, user_id):
   return recipe
 
 def get_recipes(db, user_id):
-  pass
+  recipes = db.query(Recipe).filter(Recipe.user_id == user_id).all()
+  return recipes
 
 def get_recipe_by_id(db, recipe_id, user_id):
-  pass
+  recipe = db.query(Recipe).filter(Recipe.user_id == user_id).filter(Recipe.id == recipe_id)
+  return recipe
 
 def update_recipe(db, recipe_id, user_id, name = None, base_servings = None):
-  pass
+  recipeToUpdate = db.query(Recipe).filter(Recipe.user_id == user_id).filter(Recipe.id == recipe_id)
+  if recipeToUpdate:
+    recipeToUpdate.name = name if name else recipeToUpdate.name
+    recipeToUpdate.base_servings = base_servings if base_servings else recipeToUpdate.base_servings
+    db.commit()
+    db.refresh(recipeToUpdate)
+  return recipeToUpdate
 
 def delete_recipe(db, recipe_id, user_id):
-  pass
+  recipeToDelete = db.query(Recipe).filter(Recipe.user_id == user_id).filter(Recipe.id == recipe_id)
+  db.delete(recipeToDelete)
+  db.commit()
+  db.refresh(recipeToDelete)
+  return recipeToDelete
 
 #Ingredients
 def create_ingredient(db, name, quantity, unit, recipe_id):
@@ -47,7 +59,20 @@ def create_ingredient(db, name, quantity, unit, recipe_id):
   return ingredient
 
 def update_ingredient(db, name, quantity, unit, recipe_id, ingredient_id):
-  pass
+  update = db.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).filter(Ingredient.id == ingredient_id)
+  if update:
+    #Should we do unit conversions here????? is it the databases job to do that or the layer before it?
+    update.name = name if name else update.name
+    update.quantity = quantity if quantity else update.quantity
+    update.unit = unit if unit else update.unit
+    db.commit()
+    db.refresh(update)
+  return update
 
 def delete_ingredient(db, ingredient_id, recipe_id):
-  pass
+  delete = db.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).filter(Ingredient.id == id)
+  if delete:
+    db.delete(delete)
+    db.commit()
+    db.refresh(delete)
+  return delete
