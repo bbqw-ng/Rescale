@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 import crud
 import schemas
+import auth
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 app = FastAPI()
@@ -42,10 +43,8 @@ def login(user: schemas.UserLogin, db = Depends(get_db)):
   if not bcrypt.verify(user.password, result.password):
     raise HTTPException(status_code = 401, detail = "Invalid email or password")
   #create jwt token and send back along with success message 
-  #how jwt works -> header.payload.signature
-  #header = algo used to create the jwt
-  #payload = the data inside, like the user's id or something to identify it
-  #signature = cryptographic proof that it has not been tampered with
+  token = auth.create_access_token(result.id)
+  return {"access_token": token, "token_type": "bearer"}
   
 
   

@@ -71,7 +71,7 @@ def update_ingredient(db, name, quantity, unit, recipe_id, ingredient_id):
 
 def delete_ingredient(db, ingredient_id, recipe_id):
   ingredient = db.query(Ingredient).filter(Ingredient.recipe_id == recipe_id, Ingredient.id == ingredient_id).first()
-  if ingredient :
+  if ingredient:
     db.delete(ingredient)
     db.commit()
   return ingredient
