@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 import crud
 import schemas
+import dependencies
 import auth
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -45,6 +46,37 @@ def login(user: schemas.UserLogin, db = Depends(get_db)):
   #create jwt token and send back along with success message 
   token = auth.create_access_token(result.id)
   return {"access_token": token, "token_type": "bearer"}
-  
 
-  
+@app.post("/recipes")
+def create_recipe(recipe: schemas.RecipeCreate, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.create_recipe(db, recipe.name, recipe.base_servings, user["user_id"])
+  if not result:
+    #500 server failed to do something it was normally supposed to be able to do
+    raise HTTPException(status_code = 500, detail = "Recipe could not be created")
+  return {"message": "recipe created"}
+
+@app.get("/recipes")
+def get_recipes(user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.get_recipes(db, user["user_id"])
+  return result
+
+@app.get("/recipes/{id}")
+def get_recipe_by_id(id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.get_recipe_by_id(db, id, user["user_id"])
+  if not result:
+    raise HTTPException(status_code = 404, detail = "Recipe was not found")
+  return result
+
+@app.put("/recipes/{id}")
+def update_recipe(recipe: schemas.RecipeUpdate, id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.update_recipe(db, id, user["user_id"], recipe.name, recipe.base_servings)
+  if not result:
+    raise HTTPException(status_code = 404, detail = "Something went wrong with updating the recipe")
+  return {"message": "Recipe successfully updated"}
+
+@app.delete("/recipes/{id}")
+def delete_recipe(id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.delete_recipe(db, id, user["user_id"])
+  if not result:
+    raise HTTPException(status_code = 404, detail = "Something went wrong with deleting the recipe")
+  return {"message": "Recipe deleted"}
