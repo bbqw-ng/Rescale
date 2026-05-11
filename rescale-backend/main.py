@@ -60,23 +60,44 @@ def get_recipes(user: str = Depends(dependencies.get_current_user), db = Depends
   result = crud.get_recipes(db, user["user_id"])
   return result
 
-@app.get("/recipes/{id}")
-def get_recipe_by_id(id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
-  result = crud.get_recipe_by_id(db, id, user["user_id"])
+@app.get("/recipes/{recipe_id}")
+def get_recipe_by_id(recipe_id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.get_recipe_by_id(db, recipe_id, user["user_id"])
   if not result:
     raise HTTPException(status_code = 404, detail = "Recipe was not found")
   return result
 
-@app.put("/recipes/{id}")
-def update_recipe(recipe: schemas.RecipeUpdate, id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
-  result = crud.update_recipe(db, id, user["user_id"], recipe.name, recipe.base_servings)
+@app.put("/recipes/{recipe_id}")
+def update_recipe(recipe: schemas.RecipeUpdate, recipe_id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.update_recipe(db, recipe_id, user["user_id"], recipe.name, recipe.base_servings)
   if not result:
     raise HTTPException(status_code = 404, detail = "Something went wrong with updating the recipe")
   return {"message": "Recipe successfully updated"}
 
-@app.delete("/recipes/{id}")
-def delete_recipe(id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
-  result = crud.delete_recipe(db, id, user["user_id"])
+@app.delete("/recipes/{recipe_id}")
+def delete_recipe(recipe_id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.delete_recipe(db, recipe_id, user["user_id"])
   if not result:
     raise HTTPException(status_code = 404, detail = "Something went wrong with deleting the recipe")
   return {"message": "Recipe deleted"}
+
+@app.post("/recipes/{recipe_id}/ingredients")
+def create_ingredient(ingredient: schemas.IngredientCreate, recipe_id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.create_ingredient(db, ingredient.name, ingredient.quantity, ingredient.unit, recipe_id)
+  if not result:
+    raise HTTPException(status_code = 500, detail = "Could not create ingredient")
+  return {"message": "Ingredient creation successful"}
+
+@app.put("/recipes/{recipe_id}/ingredients/{ingredient_id}")
+def update_ingredient(ingredient: schemas.IngredientUpdate, recipe_id: int, ingredient_id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.update_ingredient(db, ingredient.name, ingredient.quantity, ingredient.unit, recipe_id, ingredient_id)
+  if not result:
+    raise HTTPException(status_code = 404, detail = "Ingredient update failed")
+  return {"message": "Ingredient update successful"}
+
+@app.delete("/recipes/{recipe_id}/ingredients/{ingredient_id}")
+def delete_ingredient(recipe_id: int, ingredient_id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
+  result = crud.delete_ingredient(db, ingredient_id, recipe_id)
+  if not result:
+    raise HTTPException(status_code = 404, detail = "Ingredient was not found")
+  return {"message": "Ingredient deleted"}

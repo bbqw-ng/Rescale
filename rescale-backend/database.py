@@ -11,7 +11,7 @@ engine = create_engine(DATABASE_URL)
 #this is basically a factory that opens sessions for us when we want to access db. in endpoint scenario, we open, do work, then close.
 SessionLocal = sessionmaker(autocommit = False, autoflush = False, bind = engine)
 
-def getdb():
+def get_db():
   db = SessionLocal()
   try:
     #yield is basically a return but it actually pauses rather than ending it -> hands it over to your endpoint for it to do the work, then resumes after work finishes it, severing the connection and closing it out.
