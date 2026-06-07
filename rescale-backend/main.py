@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
 from database import engine
 from model import Base
-from passlib.hash import bcrypt
+import bcrypt
 from fastapi import Depends, HTTPException
 from database import get_db
 from jose import jwt
@@ -13,7 +14,20 @@ import dependencies
 import auth
 
 SECRET_KEY = os.getenv("SECRET_KEY")
+SECURE = os.getenv("SECURE_COOKIES", "False") == "True"
 app = FastAPI()
+
+origins = [
+  "http://localhost:3000"
+]
+
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=origins,
+  allow_credentials=True,
+  allow_methods=["*"],
+  allow_headers=["*"]
+)
 
 #reads model, creates respective tables if they dont exist, binds it to database connection.
 Base.metadata.create_all(bind = engine)
@@ -30,22 +44,33 @@ def register(user: schemas.UserCreate, db = Depends(get_db)):
     #Failure response code 400
     raise HTTPException(status_code = 400, detail = "Email is already registered")
   else:
-    hashed_password = bcrypt.hash(user.password)
+    hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
     crud.create_user(db, user.email, hashed_password)
   return {"message": "account created"}
 
 @app.post("/login")
-def login(user: schemas.UserLogin, db = Depends(get_db)):
+def login(user: schemas.UserLogin, response: Response, db = Depends(get_db)):
   #take the pydantic model, deconstruct it, verify that email exists, verify password hash, generate jwt token return token.
   result = crud.get_user_by_email(db, user.email)
   if not result:
     raise HTTPException(status_code = 401, detail = "Invalid email or password")
     #verify (plain password, hashed password) hashed = database one, plain = provided
-  if not bcrypt.verify(user.password, result.password):
+  if not bcrypt.checkpw(user.password.encode('utf-8'), result.password):
     raise HTTPException(status_code = 401, detail = "Invalid email or password")
   #create jwt token and send back along with success message 
   token = auth.create_access_token(result.id)
-  return {"access_token": token, "token_type": "bearer"}
+  
+  #setting a cookie in order to save the token until expiration
+  response.set_cookie(
+    key="access_token",
+    value=token,
+    httponly=True,
+    samesite="lax",
+    secure=SECURE,
+    max_age=1800 # 30mins in seconds -> matches whatever JWT expiration 
+  )
+
+  return {"message": "login successful"}
 
 @app.post("/recipes")
 def create_recipe(recipe: schemas.RecipeCreate, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):

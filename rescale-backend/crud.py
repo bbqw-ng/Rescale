@@ -1,7 +1,7 @@
 #CRUD stands for create, read, update, delete -> this is the backend layer, restful is the frontend http layer
 #sequence goes from http req -> frontend rest api -> backend crud function -> database
 from model import User, Recipe, Ingredient
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import selectinload
 
 #User
 #return: user obj with the filled attributes
@@ -31,7 +31,7 @@ def get_recipes(db, user_id):
   return recipes
 
 def get_recipe_by_id(db, recipe_id, user_id):
-  recipe = db.query(Recipe).filter(Recipe.user_id == user_id, Recipe.id == recipe_id).first()
+  recipe = db.query(Recipe).options(selectinload(Recipe.ingredients)).filter(Recipe.user_id == user_id, Recipe.id == recipe_id).first()
   return recipe
 
 def update_recipe(db, recipe_id, user_id, name = None, base_servings = None):

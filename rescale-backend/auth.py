@@ -21,14 +21,14 @@ def create_access_token(user_id: str) -> str:
   #using utcnow rather than now cuz standard jwt uses utc
   token_expiration_time = datetime.now(timezone.utc) + timedelta(minutes = EXPIRATION_TIME)
   payload = {"user_id": user_id, "exp": token_expiration_time}
-  token = jwt.encode(payload, SECRET_KEY, algorithm = JWT_ALGO)
+  token = jwt.encode(payload, SECRET_KEY, algorithm=JWT_ALGO)
   return token
 
 def verify_access_token(token: str) -> str:
   #decode using token, key, and algo
   try:
     #payload will be decoded into a dict
-    payload = jwt.decode(token, SECRET_KEY, algorithm = JWT_ALGO)
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[JWT_ALGO])
     return {"user_id": payload["user_id"]}
   except JWTError:
     raise HTTPException(status_code = 401, detail = "token invalid or expired");

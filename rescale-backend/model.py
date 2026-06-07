@@ -35,6 +35,7 @@ class Recipe(Base):
   user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), nullable = False)
   #requires this field as well for the recipe list and user to have that relationship, it uses the foriegn key which sqlalchemy automatically uses unless there are multiple. 
   owner: Mapped["User"] = relationship(back_populates = "recipes")
+  ingredients: Mapped["Ingredient"] = relationship(back_populates = "recipe")
   #if there are multiple youd have to state which forieng key using 'forign_keys: [user_id]' in the relationship field.
 
 class Ingredient(Base):
