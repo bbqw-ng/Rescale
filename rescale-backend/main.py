@@ -85,7 +85,7 @@ def get_recipes(user: str = Depends(dependencies.get_current_user), db = Depends
   result = crud.get_recipes(db, user["user_id"])
   return result
 
-@app.get("/recipes/{recipe_id}")
+@app.get("/recipes/{recipe_id}", response_model=schemas.RecipeResponse)
 def get_recipe_by_id(recipe_id: int, user: str = Depends(dependencies.get_current_user), db = Depends(get_db)):
   result = crud.get_recipe_by_id(db, recipe_id, user["user_id"])
   if not result:

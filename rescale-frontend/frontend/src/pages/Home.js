@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react'
 import { useNavigate } from 'react-router-dom'
 
-function HomePage() {
+function Home() {
   const navigate = useNavigate()
   const [recipes, setRecipes] = useState([])
 
@@ -10,7 +10,8 @@ function HomePage() {
     async function getRecipes() {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/recipes`, {
       method: 'GET',
-      headers: {'Content-Type': 'application/json'}
+      headers: {'Content-Type': 'application/json'},
+      credentials: 'include'
       })
     const data = await response.json()
     setRecipes(data)
@@ -19,7 +20,7 @@ function HomePage() {
   } ,[])
 
   return recipes.map((recipe) => (
-    <div key={recipe.id}>
+    <div onClick={() => navigate(`/recipes/${recipe.id}`)} key={recipe.id}>
       <ul>{recipe.id}</ul>
       {recipe.name}
     </div>
@@ -27,5 +28,5 @@ function HomePage() {
 }
 
 
-export default HomePage
+export default Home
 
